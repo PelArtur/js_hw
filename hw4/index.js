@@ -19,6 +19,7 @@ function mouseDown(event)
         offsetY = event.clientY - boxRect.top;
 
         currentBox = box;
+        currentBox.zIndex = -100;
         document.addEventListener('mousemove', mouseMove);
     }
     else if( event.which === 3 )
@@ -56,11 +57,12 @@ function randColor()
 
 function dblclick(event)
 {
+    const box = event.target.closest('.box');
+    if( !box ) return;
+
     if( event.altKey )
     {
         if( container.children.length === 1 ) return;
-
-        const box = event.target;
         box.remove();
     }
     else
@@ -69,8 +71,9 @@ function dblclick(event)
         const child = document.createElement('div');
         child.classList.add('box');
         child.textContent = boxID.toString();
-        child.style.left = event.clientX + 'px';
-        child.style.top = event.clientY + 'px';
+        const boxRect = box.getBoundingClientRect();
+        child.style.left = boxRect.width + boxRect.left + 'px';
+        child.style.top = boxRect.height + boxRect.top + 'px';
         container.appendChild(child);
     }
 }
