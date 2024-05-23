@@ -5,24 +5,9 @@ class Shape
         throw new Error('Method getArea must be implemented.');
     }
 
-    add(other)
+    valueOf()
     {
-        if (other instanceof Shape)
-            return this.getArea() + other.getArea();
-        else if (typeof other === 'number')
-            return this.getArea() + other;
-
-        throw new Error('The argument must be either a descendant of Shape or a number.');
-    }
-
-    subtract(other)
-    {
-        if (other instanceof Shape)
-            return this.getArea() - other.getArea();
-        else if (typeof other === 'number')
-            return this.getArea() - other;
-
-        throw new Error('The argument must be either a descendant of Shape or a number.');
+        return this.getArea();
     }
 
     toString()
@@ -88,4 +73,4 @@ const circle = new Circle(2);
 console.log(circle.getArea()); // 12.566370614359172
 
 console.log(`${rectangle} ${square} ${circle}`) // [Shape rectangle] [Shape square] [Shape circle]
-console.log(rectangle.add(square.subtract(circle)));  // 137.4336293856408
+console.log(rectangle + square - circle) // 137.4336293856408
