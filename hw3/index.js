@@ -52,18 +52,18 @@ function getCurrentTime()
 }
 
 
-async function getCurrentTemperature(city)
+async function getCityCoordinates(city)
 {
     const url = new URL('https://geocoding-api.open-meteo.com/v1/search');
     url.searchParams.append('name', city);
 
     const response = await fetch(url);
     if( !response.ok )
-        return `The city does not exist: ${city}`;
+        return null;
 
     const data = await response.json();
     if( !data.hasOwnProperty('results') || data.results.length === 0 )
-        return `The city does not exist: ${city}`;
+        return null;
 
     let currMaxPopulation = 0;
     let longitude;
@@ -85,20 +85,49 @@ async function getCurrentTemperature(city)
         latitude = data.results[0].latitude;
     }
 
+    return { longitude, latitude };
+}
+
+
+async function getCurrentTemperature(longitude, latitude)
+{
     const temperatureJSON = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m`);
     const temperatureData = await temperatureJSON.json();
 
     return temperatureData.hasOwnProperty('current') && temperatureData.current.hasOwnProperty('temperature_2m') ?
-            temperatureData.current.temperature_2m : `The city does not exist: ${city}`;
+        temperatureData.current.temperature_2m : 'Temperature data not available';
 }
 
+async function updateWeather(city) {
+    const coordinates = await getCityCoordinates(city);
+    if( !coordinates )
+    {
+        showTemperature(`The city does not exist: ${city}`);
+        return null;
+    }
+    return coordinates;
+}
 
-async function getCurrentWeather(city)
+let currentCoordinates = null;
+
+async function updateTemperature()
 {
-    const weather = await getCurrentTemperature(city);
-    showTemperature(weather);
+    if( currentCoordinates )
+    {
+        const temperature = await getCurrentTemperature(currentCoordinates.longitude, currentCoordinates.latitude);
+        showTemperature(temperature);
+    }
 }
 
 setInterval(() => { showTime(getCurrentTime()); }, 1000);
-onCityChange(getCurrentWeather);
-setInterval(() => { getCurrentWeather(document.getElementById('city-input')); }, 60000);
+
+onCityChange(async (city) => {
+    const coordinates = await updateWeather(city);
+    if( coordinates )
+    {
+        currentCoordinates = coordinates;
+        await updateTemperature();
+    }
+});
+
+setInterval(updateTemperature, 60000);
